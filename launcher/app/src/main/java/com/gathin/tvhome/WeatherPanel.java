@@ -56,7 +56,7 @@ final class WeatherPanel {
     private static final long HOME_AGAIN_MS = 2 * MIN, GOOD_EVERY_MS = 15 * MIN, FAILED_EVERY_MS = MIN, QUICK_MS = 8_000L;
     private static final int QUICK_TRIES = 2;
     private static final long UPDATED_AFTER_MS = 30 * MIN, HIDE_AFTER_MS = 6 * 60 * MIN;
-    private static final int WARM = 0xFFFFB27A, COOL = 0xFF8EC9FF, WHITE = 0xFFFFFFFF, DIM = 0xBFFFFFFF;
+    private static final int WARM = 0xFFFFB27A, COOL = 0xFF8EC9FF, WHITE = 0xFFFFFFFF, DIM = 0xD9FFFFFF;
 
     private final Context ctx;
     private final String url;
@@ -111,7 +111,7 @@ final class WeatherPanel {
         cols = new LinearLayout(ctx);
         cols.setOrientation(LinearLayout.HORIZONTAL);
         view.addView(cols, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        updated = text(13, regular, DIM);
+        updated = text(16, regular, DIM);
         updated.setPadding(0, (int) (10 * density), 0, 0);
         updated.setVisibility(View.GONE);
         view.addView(updated, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -252,7 +252,15 @@ final class WeatherPanel {
             return;
         }
         float band = lastDockTop - 16 * density;   // the dock band's own padding above its tiles
-        float y = lastTopBottom + Math.max(0f, (band - lastTopBottom - view.getHeight()) / 2f);
+        float gap = 12 * density, room = band - lastTopBottom - 2 * gap, h = view.getHeight();
+        // A day with a warning or rain line under every city can be taller than the room: shrink the whole block to
+        // fit rather than run into the clock or the dock.
+        float scale = h > room && room > 0 ? room / h : 1f;
+        view.setPivotX(view.getWidth() / 2f);
+        view.setPivotY(0f);
+        view.setScaleX(scale);
+        view.setScaleY(scale);
+        float y = lastTopBottom + gap + Math.max(0f, (room - h * scale) / 2f);
         view.setX(lastLeft);
         view.setY(y);
     }
@@ -328,24 +336,23 @@ final class WeatherPanel {
             col.setGravity(Gravity.CENTER_HORIZONTAL);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
 
-            TextView city = text(14, medium, DIM);
+            TextView city = text(17, medium, DIM);
             city.setLetterSpacing(0.16f);
             city.setText(c.optString("name").toUpperCase(Locale.ENGLISH));
             col.addView(city);
 
             Double t = num(now, "temp");
             if (t != null) {
-                TextView temp = text(50, light, i == warm ? WARM : i == cool ? COOL : WHITE);
+                TextView temp = text(54, light, i == warm ? WARM : i == cool ? COOL : WHITE);
                 temp.setText(Math.round(t) + "°");
                 temp.setIncludeFontPadding(false);
-                temp.setPadding(0, (int) (2 * density), 0, (int) (4 * density));
+                temp.setPadding(0, (int) (6 * density), 0, (int) (8 * density));
                 col.addView(temp);
             }
-            StringBuilder feel = new StringBuilder();
+            // one fact per line, read from across the room
             Double f = num(now, "feels"), rh = num(now, "rh");
-            if (f != null) feel.append("Feels ").append(Math.round(f)).append('°');
-            if (rh != null) feel.append(feel.length() > 0 ? "  ·  " : "").append("Humidity ").append(Math.round(rh)).append('%');
-            if (feel.length() > 0) col.addView(line(feel.toString(), DIM));
+            if (f != null) col.addView(line("Feels like " + Math.round(f) + "°", DIM));
+            if (rh != null) col.addView(line("Humidity " + Math.round(rh) + "%", DIM));
             Double hi = num(today, "hi"), lo = num(today, "lo");
             if (hi != null && lo != null) col.addView(line("High " + Math.round(hi) + "°  ·  Low " + Math.round(lo) + "°", DIM));
 
@@ -357,9 +364,9 @@ final class WeatherPanel {
             }
             String word = word(c);
             if (!word.isEmpty()) {
-                TextView w = text(15, medium, c.optJSONObject("alert") != null ? WARM : WHITE);
+                TextView w = text(18, medium, c.optJSONObject("alert") != null ? WARM : WHITE);
                 w.setText(word);
-                w.setPadding(0, (int) (2 * density), 0, 0);
+                w.setPadding(0, (int) (5 * density), 0, 0);
                 col.addView(w);
             }
             cols.addView(col, lp);
@@ -420,8 +427,9 @@ final class WeatherPanel {
     }
 
     private TextView line(String s, int colour) {
-        TextView t = text(15, regular, colour);
+        TextView t = text(18, regular, colour);
         t.setText(s);
+        t.setPadding(0, (int) (5 * density), 0, 0);
         return t;
     }
 
