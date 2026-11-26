@@ -546,7 +546,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // dock_title false: the name above the dock (and the cinematic lines under it) never shows; the glow
         // still follows the dock.
         if (!cfg.dockTitle) hero.setVisibility(View.GONE);
-        weather = new WeatherPanel(this, root);
+        try {
+            weather = new WeatherPanel(this, root);
+        } catch (RuntimeException e) {
+            weather = null;   // Home without the weather beats no Home
+        }
         greeting = findViewById(R.id.greeting);
         clockBlock = findViewById(R.id.leftBlock);
         clockRefresh = new ClockRefresh(clockBlock);
@@ -1120,7 +1124,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return;
         }
         restartIdleClock();
-        if (weather != null) weather.refresh();
+        if (weather != null) weather.onResume();
         promptsPaused = false;
         if (grid.getAdapter() == null) grid.setAdapter(adapter);   // dropped by onTrimMemory
         switch (tileRefresh.onResume(packagesChangedSinceRebuild())) {
@@ -1324,6 +1328,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onPause() {
         super.onPause();
         resumed = false;
+        if (weather != null) weather.onPause();
         // No UP reaches a paused Home, so a vendor-key hold it saw go down would still open its app later.
         // Only Home's own share is dropped: a key service that saw the same DOWN keeps its hold.
         RemoteKeys.release(this);
@@ -1943,13 +1948,25 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private void showHero(int position, float dockTopInRoot) {
         if (weather != null && weather.enabled()) {
-            float left = 0f;
-            if (clockBlock != null) {
-                clockBlock.getDrawingRect(weatherRect);
-                root.offsetDescendantRectToMyCoords(clockBlock, weatherRect);
-                left = weatherRect.left;
+            try {
+                // right-aligned with the top bar's buttons, between the top bar and the dock
+                View buttons = findViewById(R.id.topButtons);
+                float topBottom = 0f, right = root.getWidth();
+                if (clockBlock != null) {
+                    clockBlock.getDrawingRect(weatherRect);
+                    root.offsetDescendantRectToMyCoords(clockBlock, weatherRect);
+                    topBottom = weatherRect.bottom;
+                }
+                if (buttons != null) {
+                    buttons.getDrawingRect(weatherRect);
+                    root.offsetDescendantRectToMyCoords(buttons, weatherRect);
+                    right = weatherRect.right;
+                    topBottom = Math.max(topBottom, weatherRect.bottom);
+                }
+                weather.show(dockTopInRoot, topBottom, right);
+            } catch (RuntimeException e) {
+                weather.hide();
             }
-            weather.show(dockTopInRoot, left);
         }
         String label = adapter.labelAt(position);
         int color = adapter.ambientColorAt(position);

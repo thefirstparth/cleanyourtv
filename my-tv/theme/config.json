@@ -11,6 +11,15 @@
     "com.netflix.ninja",
     "com.amazon.amazonvideo.livingroom",
     "in.startv.hotstar",
-    "com.sonyliv"
-  ]
+    "com.sonyliv",
+    "com.spotify.tv.android",
+    "com.fancode.tv",
+    "com.xiaomi.mitv.mediaexplorer",
+    "com.android.vending",
+    "com.xiaomi.mitv.smartshare",
+    "com.ionitech.airscreen",
+    "com.smartdevice.tv.aircast"
+  ],
+  "icon_only_buttons": true,
+  "wifi_label_width": 0
 }
