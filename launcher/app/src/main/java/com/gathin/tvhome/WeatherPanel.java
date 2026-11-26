@@ -78,7 +78,7 @@ final class WeatherPanel {
     private int quickTries;
     private boolean resumed;
     private boolean shown, wanted;
-    private float lastDockTop, lastTopBottom, lastRight;
+    private float lastDockTop, lastTopBottom, lastLeft, lastRight;
     private ConnectivityManager.NetworkCallback netWatch;
 
     private final Runnable tick = new Runnable() {
@@ -105,12 +105,12 @@ final class WeatherPanel {
         this.file = new File(ctx.getFilesDir(), "weather.json");
         view = new LinearLayout(ctx);
         view.setOrientation(LinearLayout.VERTICAL);
-        view.setGravity(Gravity.END);
+        view.setGravity(Gravity.CENTER_HORIZONTAL);
         view.setAlpha(0f);
         view.setVisibility(View.GONE);
         cols = new LinearLayout(ctx);
         cols.setOrientation(LinearLayout.HORIZONTAL);
-        view.addView(cols);
+        view.addView(cols, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         updated = text(13, regular, DIM);
         updated.setPadding(0, (int) (10 * density), 0, 0);
         updated.setVisibility(View.GONE);
@@ -218,14 +218,15 @@ final class WeatherPanel {
     // ---- where it sits --------------------------------------------------------------------------------------------
 
     /**
-     * The dock is focused: the panel sits right-aligned with the top bar's buttons, centred between the top bar and
-     * the dock band (as on tv-vibehack's Home).
+     * The dock is focused: the panel spans the dock's width, one equal column per city with its lines centred, and
+     * sits centred between the top bar and the dock band.
      */
-    void show(float dockTopInRoot, float topBarBottom, float rightEdge) {
+    void show(float dockTopInRoot, float topBarBottom, float dockLeft, float dockRight) {
         wanted = true;
         lastDockTop = dockTopInRoot;
         lastTopBottom = topBarBottom;
-        lastRight = rightEdge;
+        lastLeft = dockLeft;
+        lastRight = dockRight;
         if (!enabled() || cols.getChildCount() == 0) return;
         try {
             view.setVisibility(View.VISIBLE);
@@ -242,9 +243,17 @@ final class WeatherPanel {
     }
 
     private void place() {
+        int width = Math.max(0, Math.round(lastRight - lastLeft));
+        ViewGroup.LayoutParams lp = view.getLayoutParams();
+        if (width > 0 && lp != null && lp.width != width) {
+            lp.width = width;
+            view.setLayoutParams(lp);
+            view.post(this::place);   // measured again at the new width before it is placed
+            return;
+        }
         float band = lastDockTop - 16 * density;   // the dock band's own padding above its tiles
         float y = lastTopBottom + Math.max(0f, (band - lastTopBottom - view.getHeight()) / 2f);
-        view.setX(lastRight - view.getWidth());
+        view.setX(lastLeft);
         view.setY(y);
     }
 
@@ -284,7 +293,7 @@ final class WeatherPanel {
             updated.setVisibility(age > UPDATED_AFTER_MS ? View.VISIBLE : View.GONE);
             if (wanted) {
                 view.setVisibility(View.VISIBLE);
-                view.post(() -> show(lastDockTop, lastTopBottom, lastRight));
+                view.post(() -> show(lastDockTop, lastTopBottom, lastLeft, lastRight));
             }
         } catch (Throwable e) {
             Log.w(TAG, "draw failed: " + e);
@@ -316,8 +325,8 @@ final class WeatherPanel {
             JSONObject today = days != null && days.length() > 0 ? days.optJSONObject(0) : null;
             LinearLayout col = new LinearLayout(ctx);
             col.setOrientation(LinearLayout.VERTICAL);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.setMarginStart(i == 0 ? 0 : (int) (52 * density));
+            col.setGravity(Gravity.CENTER_HORIZONTAL);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
 
             TextView city = text(14, medium, DIM);
             city.setLetterSpacing(0.16f);
@@ -421,7 +430,7 @@ final class WeatherPanel {
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         t.setTypeface(face);
         t.setTextColor(color);
-        t.setGravity(Gravity.START);
+        t.setGravity(Gravity.CENTER_HORIZONTAL);
         t.setSingleLine(true);
         t.setShadowLayer(6 * density, 0, 0, 0x66000000);
         return t;

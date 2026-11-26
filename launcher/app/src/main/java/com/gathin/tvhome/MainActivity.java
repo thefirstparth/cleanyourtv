@@ -1949,9 +1949,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void showHero(int position, float dockTopInRoot) {
         if (weather != null && weather.enabled()) {
             try {
-                // right-aligned with the top bar's buttons, between the top bar and the dock
+                // across the dock's width (the grid's inner area), between the top bar and the dock
                 View buttons = findViewById(R.id.topButtons);
-                float topBottom = 0f, right = root.getWidth();
+                float topBottom = 0f;
                 if (clockBlock != null) {
                     clockBlock.getDrawingRect(weatherRect);
                     root.offsetDescendantRectToMyCoords(clockBlock, weatherRect);
@@ -1960,10 +1960,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 if (buttons != null) {
                     buttons.getDrawingRect(weatherRect);
                     root.offsetDescendantRectToMyCoords(buttons, weatherRect);
-                    right = weatherRect.right;
                     topBottom = Math.max(topBottom, weatherRect.bottom);
                 }
-                weather.show(dockTopInRoot, topBottom, right);
+                grid.getDrawingRect(weatherRect);
+                root.offsetDescendantRectToMyCoords(grid, weatherRect);
+                float left = weatherRect.left + grid.getPaddingLeft(), right = weatherRect.right - grid.getPaddingRight();
+                weather.show(dockTopInRoot, topBottom, left, right);
             } catch (RuntimeException e) {
                 weather.hide();
             }

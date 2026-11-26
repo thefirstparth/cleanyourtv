@@ -7,7 +7,7 @@ Firmware `QTG3.200305.006.3261`. Set up 26 Nov 2026 on branch `parents-redmi-tv`
 | Part | Setting | Where |
 |---|---|---|
 | Debloat | 39 packages disabled (never uninstalled), incl. PatchWall, Xiaomi TV+, analytics, the stock Google TV launcher and Xiaomi's update service | `my-tv/debloat.txt`; undo with `tools/restore.sh my-tv/debloat.txt` |
-| Home | This repo's launcher, with a weather corner (house-of-1400 `/api/live/wx`: Prayagraj, Bengaluru, Gurugram) | `launcher/…/WeatherPanel.java`, `config.xml` `weather_url`, `weather_cities` |
+| Home | This repo's launcher, with weather spread across the dock width (house-of-1400 `/api/live/wx`: Prayagraj, Bengaluru, Gurugram) | `launcher/…/WeatherPanel.java`, `config.xml` `weather_url`, `weather_cities` |
 | Power-on | `power_on_home` + HomeKeyService (`HOME_KEY_SERVICE=1` at install), `key_filter` false so held volume still repeats. The Live TV app's own boot receiver otherwise opens the empty tuner ("no channels") at every power-on | `config.xml` |
 | Stock launcher insurance | `stock_home_redirect` = `com.google.android.tvlauncher`: if a Play update ever turns it back on, the helper sends the TV back to this Home | `config.xml` |
 | Look | aurora wallpaper, sky 60, 12-hour clock, 5 columns, no dock title, no tile names, icon-only Wi-Fi and Settings | `config.xml` (baked in) and `my-tv/theme` (pushed) |
