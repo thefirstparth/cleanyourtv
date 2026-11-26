@@ -344,9 +344,7 @@ final class WeatherPanel {
             Double aqi = num(air, "v");
             if (aqi != null) {
                 String cat = air.optString("cat", "");
-                TextView a = line("AQI " + Math.round(aqi) + (cat.isEmpty() ? "" : "  ·  " + cat), aqiColour(cat));
-                a.setTypeface(medium);
-                col.addView(a);
+                col.addView(line("AQI " + Math.round(aqi) + (cat.isEmpty() ? "" : "  ·  " + cat), aqiColour(cat)));
             }
             String word = word(c);
             if (!word.isEmpty()) {
@@ -371,15 +369,15 @@ final class WeatherPanel {
         return chip.optString("text", "");
     }
 
-    /** India's CPCB categories, as the feed names them. */
+    /** India's CPCB categories, as the feed names them: muted tints that lean towards the white text around them. */
     private static int aqiColour(String cat) {
         switch (cat.toLowerCase(Locale.ENGLISH)) {
-            case "good": return 0xFF7EE08A;
-            case "satisfactory": return 0xFFC5E87A;
-            case "moderate": return 0xFFF2D46B;
-            case "poor": return 0xFFFFA65C;
-            case "very poor": return 0xFFFF6B5E;
-            case "severe": return 0xFFE0475A;
+            case "good": return 0xFFB4D3B6;
+            case "satisfactory": return 0xFFCCD7B0;
+            case "moderate": return 0xFFDDD2AE;
+            case "poor": return 0xFFE0BFA3;
+            case "very poor": return 0xFFDDA9A3;
+            case "severe": return 0xFFD49AA2;
             default: return DIM;
         }
     }
