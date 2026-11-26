@@ -150,6 +150,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView heroName;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
+    /** The weather corner above the dock (config.xml weather_url; off when empty). */
+    private WeatherPanel weather;
+    private final Rect weatherRect = new Rect();
     private TextView heroMeta;
     private LinearLayout heroDots;
     /** Cinematic top shelf (config.xml, cinematic_home): the focused dock app's artwork behind a larger shelf. */
@@ -543,6 +546,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // dock_title false: the name above the dock (and the cinematic lines under it) never shows; the glow
         // still follows the dock.
         if (!cfg.dockTitle) hero.setVisibility(View.GONE);
+        weather = new WeatherPanel(this, root);
         greeting = findViewById(R.id.greeting);
         clockBlock = findViewById(R.id.leftBlock);
         clockRefresh = new ClockRefresh(clockBlock);
@@ -1116,6 +1120,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return;
         }
         restartIdleClock();
+        if (weather != null) weather.refresh();
         promptsPaused = false;
         if (grid.getAdapter() == null) grid.setAdapter(adapter);   // dropped by onTrimMemory
         switch (tileRefresh.onResume(packagesChangedSinceRebuild())) {
@@ -1937,6 +1942,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     // ---- top shelf -------------------------------------------------------------------------------
 
     private void showHero(int position, float dockTopInRoot) {
+        if (weather != null && weather.enabled()) {
+            float left = 0f;
+            if (clockBlock != null) {
+                clockBlock.getDrawingRect(weatherRect);
+                root.offsetDescendantRectToMyCoords(clockBlock, weatherRect);
+                left = weatherRect.left;
+            }
+            weather.show(dockTopInRoot, left);
+        }
         String label = adapter.labelAt(position);
         int color = adapter.ambientColorAt(position);
         float y = dockTopInRoot - 14 * density - 26 * density - hero.getHeight();
@@ -2217,6 +2231,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      * name above the dock does not show (every grid tile has its name underneath).
      */
     private void showGlowOnly(int position) {
+        if (weather != null) weather.hide();
         int color = adapter.ambientColorAt(position);
         stopAmbientAnimation();
         hero.animate().cancel();
@@ -2248,6 +2263,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     private void hideHero() {
+        if (weather != null) weather.hide();
         if (!heroShown) return;
         stopAmbientAnimation();
         hero.animate().cancel();

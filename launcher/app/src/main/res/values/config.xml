@@ -32,6 +32,7 @@
     <string-array name="hidden_apps">
         <item>com.mediatek.wwtv.tvcenter</item>
         <item>com.mitv.gallery</item>
+        <item>com.mitv.dream</item>
     </string-array>
 
     <!-- The TV's Live TV / tuner app, offered at the end of the Inputs menu. Leave empty to omit. -->
@@ -418,6 +419,19 @@
     <!-- The focused dock app's name in large type above the dock. false keeps only the glow, which leaves room
          for bigger tiles when rows_below_dock is 2 or 3. -->
     <bool name="dock_title">true</bool>
+
+    <!-- This TV's own additions (not in upstream CleanYourTV, which has no network access). -->
+    <!-- The weather corner above the dock: house-of-1400's four-city weather feed, cached by the site for 15 minutes.
+         Empty turns the corner off and nothing is ever requested. -->
+    <string name="weather_url" translatable="false">https://house14.vercel.app/api/live/wx</string>
+    <!-- The feed's city ids to show, in this order (the feed has blr, pyj, rnc and ggn). -->
+    <string-array name="weather_cities" translatable="false">
+        <item>pyj</item>
+        <item>blr</item>
+        <item>ggn</item>
+    </string-array>
+    <!-- The focused tile's name under it in the grid. false: banners only, no name (the banner already says it). -->
+    <bool name="show_tile_names">false</bool>
 
     <!-- Tiles per row in the grid; the dock always has this many slots. Tiles are 180dp wide at 4 columns and
          shrink to fit from 5 up (about 144dp at 5, 117dp at 6 on a 1080p TV). -->

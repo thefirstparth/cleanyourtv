@@ -1,0 +1,16 @@
+{
+  "background_color": "#070A14",
+  "wallpaper": true,
+  "clock_format": "12",
+  "sky_intensity": 60,
+  "home_idle_clock_minutes": 10,
+  "dock_title": false,
+  "columns": 5,
+  "dock_apps": [
+    "com.google.android.youtube.tv",
+    "com.netflix.ninja",
+    "com.amazon.amazonvideo.livingroom",
+    "in.startv.hotstar",
+    "com.sonyliv"
+  ]
+}
